@@ -1,14 +1,19 @@
 <template>
+    <h1>Detalle del contacto</h1>
     <Card>
         <template #title>
-            Product Detail
+            {{ contact?.name }}
         </template>
         <template #content>
-            <p>ID: {{ contact.id }}</p>
-            <p>Name: {{ contact.name }}</p>
-            <p>Price: {{ contact.price }} $</p>
+            <p><strong>Teléfono:</strong> {{ contact?.phone }}</p>
+            <p><strong>Email:</strong> {{ contact?.email }}</p>
+            <p><strong>Empresa:</strong> {{ contact?.company }}</p>
+            <p><strong>Favorito:</strong> {{ contact?.favourite ? 'Sí' : 'No' }}</p>
+
         </template>
+        
     </Card>
+    <Button label="Volver a la agenda" icon="pi pi-arrow-left" @click="$router.push('/contactos')" />
 </template>
 <script setup>
 import {computed} from 'vue';

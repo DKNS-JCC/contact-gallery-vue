@@ -1,27 +1,51 @@
 <template>
-  <div class="card flex flex-column align-items-center gap-5">
-    Añadir Producto
+  <div class="card flex flex-column align-items-center gap-3 p-4">
+    <h2>Añadir Contacto</h2>
 
     <Form v-slot="$form" :initialValues="initialValues" :resolver="resolver" @submit="onFormSubmit"
-      class="flex flex-column gap-4 w-full sm:w-56">
-      <div class="flex flex-column gap-1">
-        <InputText name="name" type="text" placeholder="Nombre" fluid />
+      class="flex flex-column gap-3 w-full" style="max-width: 500px;">
+      
+      <div class="flex flex-column gap-2">
+        <label for="name">Nombre *</label>
+        <InputText name="name" type="text" placeholder="Nombre completo" fluid />
         <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
           {{ $form.name.error.message }}
         </Message>
       </div>
 
-      <div class="flex flex-column gap-1">
-        <InputText name="price" type="number" placeholder="Precio" fluid />
-        <Message v-if="$form.price?.invalid" severity="error" size="small" variant="simple">
-          {{ $form.price.error.message }}
+      <div class="flex flex-column gap-2">
+        <label for="phone">Teléfono *</label>
+        <InputText name="phone" type="text" placeholder="Número de teléfono" fluid />
+        <Message v-if="$form.phone?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.phone.error.message }}
         </Message>
       </div>
 
-      <Button type="submit" severity="secondary" label="Enviar" />
+      <div class="flex flex-column gap-2">
+        <label for="email">Email *</label>
+        <InputText name="email" type="email" placeholder="correo@ejemplo.com" fluid />
+        <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.email.error.message }}
+        </Message>
+      </div>
 
-      <!-- El slot expone el estado completo del formulario -->
-      {{ $form }}
+      <div class="flex flex-column gap-2">
+        <label for="company">Empresa</label>
+        <InputText name="company" type="text" placeholder="Nombre de la empresa" fluid />
+        <Message v-if="$form.company?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.company.error.message }}
+        </Message>
+      </div>
+
+      <div class="flex align-items-center gap-2">
+        <Checkbox name="favourite" :binary="true" inputId="favourite" />
+        <label for="favourite">Favorito</label>
+      </div>
+
+      <div class="flex gap-2 mt-3">
+        <Button type="submit" label="Guardar" icon="pi pi-check" />
+        <Button type="button" label="Cancelar" severity="secondary" icon="pi pi-times" @click="router.push('/contactos')" />
+      </div>
     </Form>
   </div>
 </template>
@@ -31,68 +55,62 @@ import { ref } from 'vue'
 import { z } from 'zod'
 import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
-import { useContactStore } from '@/store/contacts';
+import { useContactStore } from '@/store/contacts'
 import InputText from 'primevue/inputtext'
+import Checkbox from 'primevue/checkbox'
 import Message from 'primevue/message'
 import Button from 'primevue/button'
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
 
-const contactStore = useContactStore();
-const router = useRouter();
-const route = useRoute();
-
-// Estado inicial que vive dentro del componente FormparseInt
-let contact = undefined
-if (route.name === 'contact-edit') {
-  contact = contactStore.getContactById((route.params.id))
-}
+const contactStore = useContactStore()
+const router = useRouter()
+const toast = useToast()
 
 const initialValues = ref({
-  name: contact ? contact.name : '',
-  price: contact ? contact.price : 0
+  name: '',
+  phone: '',
+  email: '',
+  company: '',
+  favourite: false
 })
 
-
-// El resolver traduce el esquema de Zod a las reglas que entiende el Form
 const resolver = ref(
   zodResolver(
     z.object({
-      name: z.string().min(1, { message: 'Nombre es necesario' }),
-      price: z.coerce
-        .number({
-          required_error: 'Precio es requerido',
-          invalid_type_error: 'Precio debe ser un número'
-        })
-        .min(1, { message: 'Precio debe ser al menos 1' })
-        .max(1000, { message: 'Precio debe ser como máximo 1000' })
+      name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres' }),
+      phone: z.string().min(9, { message: 'El teléfono debe tener al menos 9 dígitos' }),
+      email: z.string().email({ message: 'Email inválido' }),
+      company: z.string().optional(),
+      favourite: z.boolean().optional()
     })
   )
 )
 
 const onFormSubmit = ({ valid, values }) => {
   if (valid) {
-    // Obtener el último id y asignar el siguiente
-    if (route.name === 'contact-add') {
-      const contacts = contactStore.getContacts;
-      const lastId = contacts.length > 0 ? Math.max(...contacts.map(p => p.id)) : 0;
-      const newContact = {
-        id: lastId + 1,
-        name: values.name,
-        price: values.price
-      };
-      contactStore.addContact(newContact);
-      console.log('Form submitted', newContact);
-
-    } else if (route.name === 'contact-edit') {
-      const updatedContact = {
-        id: contact.id,
-        name: values.name,
-        price: values.price
-      };
-      contactStore.editContact(updatedContact);
+    const contacts = contactStore.getContacts
+    const lastId = contacts.length > 0 ? Math.max(...contacts.map(c => c.id)) : 0
+    
+    const newContact = {
+      id: lastId + 1,
+      name: values.name,
+      phone: values.phone,
+      email: values.email,
+      company: values.company || '',
+      favourite: values.favourite || false
     }
-
-    router.push('/contactos');
+    
+    contactStore.addContact(newContact)
+    
+    toast.add({
+      severity: 'success',
+      summary: 'Contacto añadido',
+      detail: `${newContact.name} ha sido añadido correctamente`,
+      life: 3000
+    })
+    
+    router.push('/contactos')
   }
 }
 </script>

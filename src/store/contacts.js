@@ -10,16 +10,16 @@ export const useContactStore = defineStore('contactStore', {
     },
     actions: {
         addContact(contact) {
-            this.contacts.push(contact);
+            this.contacts.push(contact)
         },
         removeContact(contactId) {
-            this.contacts = this.contacts.filter(p => p.id !== contactId);
+            this.contacts = this.contacts.filter(c => c.id !== contactId)
         },
         editContact(updatedContact) {
-            const index = this.contacts.findIndex(p => p.id === updatedContact.id);
+            const index = this.contacts.findIndex(c => c.id === updatedContact.id)
+            if (index !== -1) {
+                this.contacts[index] = updatedContact
+            }
         },
-        countContacts() {
-            return this.contacts.length;
-        }
     },
 })
