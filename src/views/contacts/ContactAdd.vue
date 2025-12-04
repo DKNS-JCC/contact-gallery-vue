@@ -40,6 +40,8 @@
       <div class="flex align-items-center gap-2">
         <Checkbox name="favourite" :binary="true" inputId="favourite" />
         <label for="favourite">Favorito</label>
+        <ToggleButton v-model="checked" onLabel="Activo" offLabel="Inactivo" onIcon="pi pi-circle-fill" 
+        offIcon="pi pi-circle" class="w-36"/>
       </div>
 
       <div class="flex gap-2 mt-3">
@@ -110,7 +112,7 @@ const onFormSubmit = ({ valid, values }) => {
       life: 3000
     })
     
-    router.push('/contactos')
+    router.push(`/contactos/${newContact.id}`)
   }
 }
 </script>
